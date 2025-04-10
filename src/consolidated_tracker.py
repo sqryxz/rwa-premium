@@ -58,7 +58,7 @@ class ConsolidatedTracker:
             
         return data
     
-    def analyze_trends(self, data_series: List[float]) -> Dict[str, Any]:
+    def analyze_trend(self, data_series: List[float]) -> Dict[str, Any]:
         """Analyze trends in a time series of premium/discount rates"""
         if not data_series or len(data_series) < 2:
             return {
@@ -91,7 +91,7 @@ class ConsolidatedTracker:
             'r_squared': r_value ** 2
         }
 
-    def calculate_correlations(self, cfg_data: List[float], ondo_data: List[float]) -> Dict[str, float]:
+    def calculate_correlation(self, cfg_data: List[float], ondo_data: List[float]) -> Dict[str, float]:
         """Calculate correlations between CFG and ONDO premiums"""
         if len(cfg_data) != len(ondo_data) or len(cfg_data) < 2:
             return {
@@ -112,6 +112,10 @@ class ConsolidatedTracker:
             'timeframe': timeframe,
             'cfg_report': {},
             'ondo_report': {},
+            'usdy_data': {
+                'current_yield': self.ondo_tracker.fetch_usdy_yield(),
+                'yield_history': []  # Will be populated from historical data
+            },
             'analysis': {
                 'trends': {},
                 'correlations': {},
@@ -126,31 +130,110 @@ class ConsolidatedTracker:
         report['cfg_report'] = cfg_report
         report['ondo_report'] = ondo_report
         
+        # Extract USDY yield history from ONDO data if available
+        if os.path.exists(self.ondo_tracker.data_file):
+            with open(self.ondo_tracker.data_file, 'r') as f:
+                historical_data = json.load(f)
+                report['usdy_data']['yield_history'] = [
+                    entry.get('premium_metrics', {}).get('usdy_yield', None) 
+                    for entry in historical_data
+                    if entry.get('premium_metrics', {}).get('usdy_yield') is not None
+                ]
+        
         # Analyze trends for each asset
         for pool_id, stats in cfg_report.items():
-            if stats:
-                drop_premiums = stats.get('drop_premium_history', [])
-                tin_premiums = stats.get('tin_premium_history', [])
-                
-                report['analysis']['trends'][f'{pool_id}_drop'] = self.analyze_trends(drop_premiums)
-                report['analysis']['trends'][f'{pool_id}_tin'] = self.analyze_trends(tin_premiums)
+            if isinstance(stats, dict) and 'premium_history' in stats:
+                report['analysis']['trends'][f'cfg_pool_{pool_id}'] = self.analyze_trend(stats['premium_history'])
+
+        for token, stats in ondo_report.items():
+            if isinstance(stats, dict) and 'premium_history' in stats:
+                report['analysis']['trends'][f'ondo_{token}'] = self.analyze_trend(stats['premium_history'])
         
-        ondo_premiums = ondo_report.get('premium_history', [])
-        report['analysis']['trends']['ondo'] = self.analyze_trends(ondo_premiums)
+        # Analyze USDY yield trends
+        if report['usdy_data']['yield_history']:
+            report['analysis']['trends']['usdy_yield'] = self.analyze_trend(report['usdy_data']['yield_history'])
+            
+            # Add market insights specific to USDY yield
+            latest_yield = report['usdy_data']['current_yield']
+            historical_yields = report['usdy_data']['yield_history']
+            if historical_yields:
+                avg_yield = sum(y for y in historical_yields if y is not None) / len([y for y in historical_yields if y is not None])
+                report['analysis']['market_insights']['usdy_yield'] = {
+                    'current_vs_average': {
+                        'value': latest_yield - avg_yield if latest_yield is not None else None,
+                        'description': f"Current USDY yield is {'above' if latest_yield > avg_yield else 'below'} historical average by {abs(latest_yield - avg_yield):.2f}%" if latest_yield is not None else "No current yield data available"
+                    },
+                    'volatility': self.calculate_volatility(historical_yields)
+                }
         
         # Calculate correlations between assets
-        for pool_id in cfg_report:
-            if cfg_report[pool_id] and ondo_premiums:
-                drop_premiums = cfg_report[pool_id].get('drop_premium_history', [])
-                tin_premiums = cfg_report[pool_id].get('tin_premium_history', [])
+        for pool_id, pool_stats in cfg_report.items():
+            if not isinstance(pool_stats, dict) or 'premium_history' not in pool_stats:
+                continue
                 
-                # Ensure equal length for correlation calculation
-                min_length = min(len(drop_premiums), len(ondo_premiums))
+            cfg_premiums = pool_stats['premium_history']
+            
+            # Correlate with ONDO tokens
+            for token, ondo_stats in ondo_report.items():
+                if not isinstance(ondo_stats, dict) or 'premium_history' not in ondo_stats:
+                    continue
+                    
+                ondo_premiums = ondo_stats['premium_history']
+                min_length = min(len(cfg_premiums), len(ondo_premiums))
+                
                 if min_length > 1:
-                    report['analysis']['correlations'][f'{pool_id}_drop_vs_ondo'] = \
-                        self.calculate_correlations(drop_premiums[-min_length:], ondo_premiums[-min_length:])
-                    report['analysis']['correlations'][f'{pool_id}_tin_vs_ondo'] = \
-                        self.calculate_correlations(tin_premiums[-min_length:], ondo_premiums[-min_length:])
+                    report['analysis']['correlations'][f'cfg_pool_{pool_id}_vs_ondo_{token}'] = \
+                        self.calculate_correlation(cfg_premiums[-min_length:], ondo_premiums[-min_length:])
+            
+            # Correlate with USDY yield if available
+            if report['usdy_data']['yield_history']:
+                usdy_yields = report['usdy_data']['yield_history']
+                min_length = min(len(cfg_premiums), len(usdy_yields))
+                
+                if min_length > 1:
+                    report['analysis']['correlations'][f'cfg_pool_{pool_id}_vs_usdy_yield'] = \
+                        self.calculate_correlation(cfg_premiums[-min_length:], usdy_yields[-min_length:])
+
+        # Generate market summary
+        report['market_summary'] = []
+        
+        # Add CFG pools to market summary
+        for pool_id, stats in cfg_report.items():
+            if isinstance(stats, dict):
+                report['market_summary'].append({
+                    'pool_id': pool_id,
+                    'token_type': 'CFG',
+                    'current_premium': stats.get('current_premium', 'N/A'),
+                    'trend': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('trend', 'N/A'),
+                    'volatility': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('volatility', 'N/A'),
+                    'momentum': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('momentum', 'N/A'),
+                    'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get(f'cfg_pool_{pool_id}', 'N/A')
+                })
+
+        # Add ONDO tokens to market summary
+        for token, stats in ondo_report.items():
+            if isinstance(stats, dict):
+                report['market_summary'].append({
+                    'token': token,
+                    'token_type': 'ONDO',
+                    'current_premium': stats.get('current_premium', 'N/A'),
+                    'trend': report['analysis']['trends'].get(f'ondo_{token}', {}).get('trend', 'N/A'),
+                    'volatility': report['analysis']['trends'].get(f'ondo_{token}', {}).get('volatility', 'N/A'),
+                    'momentum': report['analysis']['trends'].get(f'ondo_{token}', {}).get('momentum', 'N/A'),
+                    'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get(f'ondo_{token}', 'N/A')
+                })
+        
+        # Add USDY yield to market summary
+        if report['usdy_data']['current_yield'] is not None:
+            report['market_summary'].append({
+                'token': 'USDY',
+                'token_type': 'YIELD',
+                'current_value': report['usdy_data']['current_yield'],
+                'trend': report['analysis']['trends'].get('usdy_yield', {}).get('trend', 'N/A'),
+                'volatility': report['analysis']['trends'].get('usdy_yield', {}).get('volatility', 'N/A'),
+                'momentum': report['analysis']['trends'].get('usdy_yield', {}).get('momentum', 'N/A'),
+                'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get('usdy_yield', 'N/A')
+            })
         
         # Generate market insights
         report['analysis']['market_insights'] = self.generate_market_insights(report)
@@ -260,10 +343,10 @@ class ConsolidatedTracker:
                     'pool_id': pool_id,
                     'token_type': 'DROP',
                     'current_premium': stats.get('drop_premium', 'N/A'),
-                    'trend': report['analysis']['trends'].get(f'{pool_id}_drop', {}).get('trend', 'N/A'),
-                    'volatility': report['analysis']['trends'].get(f'{pool_id}_drop', {}).get('volatility', 'N/A'),
-                    'momentum': report['analysis']['trends'].get(f'{pool_id}_drop', {}).get('momentum', 'N/A'),
-                    'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get(f'{pool_id}_drop', 'N/A')
+                    'trend': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('trend', 'N/A'),
+                    'volatility': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('volatility', 'N/A'),
+                    'momentum': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('momentum', 'N/A'),
+                    'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get(f'cfg_pool_{pool_id}', 'N/A')
                 })
                 
                 csv_data.append({
@@ -273,10 +356,10 @@ class ConsolidatedTracker:
                     'pool_id': pool_id,
                     'token_type': 'TIN',
                     'current_premium': stats.get('tin_premium', 'N/A'),
-                    'trend': report['analysis']['trends'].get(f'{pool_id}_tin', {}).get('trend', 'N/A'),
-                    'volatility': report['analysis']['trends'].get(f'{pool_id}_tin', {}).get('volatility', 'N/A'),
-                    'momentum': report['analysis']['trends'].get(f'{pool_id}_tin', {}).get('momentum', 'N/A'),
-                    'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get(f'{pool_id}_tin', 'N/A')
+                    'trend': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('trend', 'N/A'),
+                    'volatility': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('volatility', 'N/A'),
+                    'momentum': report['analysis']['trends'].get(f'cfg_pool_{pool_id}', {}).get('momentum', 'N/A'),
+                    'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get(f'cfg_pool_{pool_id}', 'N/A')
                 })
         
         # Add ONDO data
@@ -288,10 +371,10 @@ class ConsolidatedTracker:
                 'pool_id': 'N/A',
                 'token_type': 'ONDO',
                 'current_premium': report['ondo_report'].get('current_premium', 'N/A'),
-                'trend': report['analysis']['trends'].get('ondo', {}).get('trend', 'N/A'),
-                'volatility': report['analysis']['trends'].get('ondo', {}).get('volatility', 'N/A'),
-                'momentum': report['analysis']['trends'].get('ondo', {}).get('momentum', 'N/A'),
-                'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get('ondo', 'N/A')
+                'trend': report['analysis']['trends'].get('ondo_current_premium', {}).get('trend', 'N/A'),
+                'volatility': report['analysis']['trends'].get('ondo_current_premium', {}).get('volatility', 'N/A'),
+                'momentum': report['analysis']['trends'].get('ondo_current_premium', {}).get('momentum', 'N/A'),
+                'trend_stability': report['analysis']['risk_metrics']['trend_stability'].get('ondo_current_premium', 'N/A')
             })
         
         # Write correlation data

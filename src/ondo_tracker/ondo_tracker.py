@@ -561,6 +561,11 @@ class OndoTracker:
             report = {
                 'timeframe': timeframe,
                 'data_points': len(df),
+                'current_premium': df['price_premium_pct'].iloc[-1] if len(df) > 0 else None,
+                'avg_premium': df['price_premium_pct'].mean(),
+                'min_premium': df['price_premium_pct'].min(),
+                'max_premium': df['price_premium_pct'].max(),
+                'premium_history': df['price_premium_pct'].tolist(),
                 'premium_stats': {
                     'mean': df['price_premium_pct'].mean(),
                     'std': df['price_premium_pct'].std(),

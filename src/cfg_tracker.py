@@ -5,9 +5,11 @@ import pandas as pd
 from typing import Dict, List, Optional
 from pathlib import Path
 import requests
+from dotenv import load_dotenv
 
 class CFGTracker:
     def __init__(self, data_dir: str = "src/data"):
+        load_dotenv()
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.history_file = self.data_dir / "cfg_history.json"
@@ -54,15 +56,27 @@ class CFGTracker:
             self.api_endpoint,
             json={'query': query}
         )
-        return response.json()
+        
+        if response.status_code != 200:
+            raise Exception(f"API request failed with status {response.status_code}: {response.text}")
+        
+        data = response.json()
+        print("Raw API Response:")
+        print(json.dumps(data, indent=2))
+            
+        return data
     
     def calculate_premium_discount(self, token_price, nav=1.0):
         """Calculate premium/discount percentage relative to NAV"""
-        token_price = float(token_price) / (10 ** 18)  # Convert from wei to DAI
+        # Convert the large token price to a standard decimal
+        token_price = float(token_price) / (10 ** 27)  # Convert from large denomination to standard decimal
         return ((token_price - nav) / nav) * 100
     
     def update_premium_history(self, pool_id):
         pool_data = self.fetch_pool_data(pool_id)
+        
+        if 'errors' in pool_data:
+            raise Exception(f"GraphQL query failed: {pool_data['errors']}")
         
         if not os.path.exists(self.history_file):
             with open(self.history_file, 'w') as f:
@@ -77,12 +91,13 @@ class CFGTracker:
             "tranches": {}
         }
         
-        for tranche in pool['data']['pool']['tranches']['nodes']:
+        for tranche in pool_data['data']['pool']['tranches']['nodes']:
             tranche_type = "junior" if "junior" in tranche['id'].lower() else "senior"
             token_type = "TIN" if tranche_type == "junior" else "DROP"
             
-            token_price = float(tranche['tokenPrice']) / (10 ** 18)
+            # Calculate premium/discount and token price
             premium_discount = self.calculate_premium_discount(tranche['tokenPrice'])
+            token_price = float(tranche['tokenPrice']) / (10 ** 27)  # Convert to standard decimal
             
             current_data["tranches"][tranche_type] = {
                 "token_price": token_price,
