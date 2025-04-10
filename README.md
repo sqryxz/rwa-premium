@@ -1,30 +1,21 @@
 # RWA Premium Tracker
 
-A Python-based tool for tracking and analyzing Real World Assets (RWA) tokens, including:
-- Centrifuge (CFG) pool tokens premium/discount rates relative to NAV
-- ONDO token premium/discount rates relative to Treasury yields and DEX trading patterns
+A consolidated tracker for Real World Asset (RWA) premiums and discounts, tracking both CFG and ONDO assets.
 
-## Currently Supported Features
+## Features
 
-1. CFG Tracker:
-   - Track premium/discount rates for DROP and TIN tokens
-   - Monitor pool metrics and performance
-   - Generate statistical reports and analysis
-   - Historical data tracking
+- Track premium/discount rates for CFG and ONDO assets
+- Generate consolidated reports in both JSON and CSV formats
+- Analyze trends and correlations between different assets
+- Calculate risk metrics and market insights
+- Support for different timeframes (daily, weekly, monthly)
 
-2. ONDO Tracker:
-   - Monitor ONDO token prices across major DEXs
-   - Track Treasury yield rates
-   - Calculate premium/discount relative to Treasury yields
-   - Analyze trading patterns and liquidity
-   - Generate statistical reports with customizable timeframes
-
-## Setup
+## Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd cfg-tracker
+git clone https://github.com/yourusername/rwa-premium-tracker.git
+cd rwa-premium-tracker
 ```
 
 2. Create and activate a virtual environment:
@@ -38,63 +29,35 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file with your API keys:
-```bash
-ETHEREUM_RPC_URL=your_ethereum_node_url
+4. Set up environment variables:
+Create a `.env` file in the root directory and add your configuration:
+```
+# Add your environment variables here
 ```
 
 ## Usage
 
-Run the CFG tracker:
+Run the tracker with default settings:
 ```bash
-python3 src/main.py
+python src/consolidated_tracker.py
 ```
 
-Run the ONDO tracker:
-```bash
-python3 src/ondo_tracker/main.py [--timeframe {daily,weekly,monthly,all}] [--report-only]
-```
-
-Options for ONDO tracker:
-- `--timeframe`: Select report timeframe (default: daily)
+Available command-line options:
+- `--timeframe`: Choose between 'daily', 'weekly', 'monthly', or 'all'
 - `--report-only`: Generate report without fetching new data
+- `--format`: Choose output format ('json', 'csv', or 'both')
 
-The CFG tracker will:
-- Fetch current data from Centrifuge pools
-- Calculate premium/discount rates for tranches
-- Generate statistical reports
-- Store historical data in `src/data/premium_history.json`
+Example:
+```bash
+python src/consolidated_tracker.py --timeframe weekly --format csv
+```
 
-## Data Storage
+## Output
 
-1. CFG data is stored in `src/data/premium_history.json`
-2. ONDO data is stored in `src/ondo_tracker/data/ondo_premium_history.json`
-
-Both use JSON format and include:
-- Timestamp
-- Price data
-- Premium/discount metrics
-- Trading analysis
-
-## Reports
-
-The tracker generates reports with the following metrics:
-- Current premium/discount rates
-- Historical averages
-- Maximum and minimum values
-- Standard deviation
-- Number of observations
-
-Reports can be generated for different timeframes:
-- Daily
-- Weekly
-- Monthly
-- All-time
-
-## Contributing
-
-Feel free to submit issues and enhancement requests!
+The tracker generates two types of reports:
+1. Main report (consolidated_report.json/csv) with premium/discount rates and analysis
+2. Correlation data (correlations.csv) showing relationships between different assets
 
 ## License
 
-MIT 
+[MIT License](LICENSE) 
