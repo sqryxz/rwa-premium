@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-04-10T09:39:42.252794+00:00",
+  "timestamp": "2025-04-10T10:32:08.339291+00:00",
   "timeframe": "daily",
   "cfg_report": {
     "DROP": {
@@ -27,20 +27,20 @@
   },
   "ondo_report": {
     "timeframe": "daily",
-    "data_points": 42,
+    "data_points": 43,
     "premium_stats": {
-      "mean": 2.028571428571433,
-      "std": 2.5824724128373986,
+      "mean": 1.9779069767441906,
+      "std": 2.573081863613153,
       "min": -0.14999999999999458,
       "max": 5.500000000000016
     },
     "yield_comparison": {
-      "mean_spread": -5.845669962319005,
-      "current_spread": -4.899774661992985
+      "mean_spread": -5.828323559985842,
+      "current_spread": -5.099774661992985
     },
     "trading_stats": {
-      "avg_daily_volume": 123214.28571428571,
-      "avg_liquidity": 1916666.6666666667
+      "avg_daily_volume": 122093.02325581395,
+      "avg_liquidity": 1906976.7441860465
     }
   },
   "analysis": {

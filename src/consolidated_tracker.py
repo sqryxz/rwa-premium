@@ -31,7 +31,11 @@ class ConsolidatedTracker:
         
         # Fetch CFG data
         cfg_price = self.centrifuge_fetcher.get_cfg_price()
-        pool_ids = ['pool1', 'pool2']  # Replace with actual pool IDs
+        pool_ids = [
+            '0x4cA805cE8EcE2E63FfC1F9f8F2731D3F48DF89Df',  # HVB Real Estate Pool
+            '0x6F2A3B2f6c07034b3BCf1c916F8091B1425E61d9',  # Cauris Global Fintech Pool
+            '0x0Cf79cB86E2b9E46F14cE85d35B9E118E4ADc8c0'   # BlockTower High Yield Loan Pool
+        ]
         
         for pool_id in pool_ids:
             pool_data = self.centrifuge_fetcher.get_pool_data(pool_id)
@@ -314,6 +318,134 @@ class ConsolidatedTracker:
             print(f"CSV report saved to {filepath}")
             print(f"Correlation data saved to {correlation_filepath}")
 
+    def save_report_as_pdf(self, report: Dict[str, Any], filename: str = 'consolidated_report.pdf'):
+        """Save the consolidated report as a PDF file with formatting"""
+        try:
+            from reportlab.lib import colors
+            from reportlab.lib.pagesizes import letter
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import inch
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        except ImportError:
+            logger.error("reportlab package is required for PDF export. Please install it with: pip install reportlab")
+            return
+
+        os.makedirs('src/data', exist_ok=True)
+        filepath = os.path.join('src/data', filename)
+        
+        # Create the PDF document
+        doc = SimpleDocTemplate(filepath, pagesize=letter)
+        styles = getSampleStyleSheet()
+        story = []
+        
+        # Title
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30
+        )
+        story.append(Paragraph("RWA Premium Tracker Report", title_style))
+        story.append(Spacer(1, 12))
+        
+        # Timestamp and timeframe
+        story.append(Paragraph(f"Generated: {report['timestamp']}", styles['Normal']))
+        story.append(Paragraph(f"Timeframe: {report['timeframe']}", styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # CFG Summary Section
+        story.append(Paragraph("CFG Summary", styles['Heading2']))
+        for pool_id, stats in report['cfg_report'].items():
+            if stats:
+                story.append(Paragraph(f"Pool: {pool_id}", styles['Heading3']))
+                data = [
+                    ["Metric", "Value"],
+                    ["DROP Premium", f"{format_value(stats.get('drop_premium'))}%"],
+                    ["TIN Premium", f"{format_value(stats.get('tin_premium'))}%"]
+                ]
+                t = Table(data, colWidths=[2*inch, 1.5*inch])
+                t.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ]))
+                story.append(t)
+                story.append(Spacer(1, 12))
+        
+        # ONDO Summary Section
+        story.append(Paragraph("ONDO Summary", styles['Heading2']))
+        if report['ondo_report']:
+            ondo_stats = report['ondo_report']
+            data = [
+                ["Metric", "Value"],
+                ["Current Premium", f"{format_value(ondo_stats.get('current_premium'))}%"],
+                ["Average Premium", f"{format_value(ondo_stats.get('avg_premium'))}%"],
+                ["Minimum Premium", f"{format_value(ondo_stats.get('min_premium'))}%"],
+                ["Maximum Premium", f"{format_value(ondo_stats.get('max_premium'))}%"]
+            ]
+            t = Table(data, colWidths=[2*inch, 1.5*inch])
+            t.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ]))
+            story.append(t)
+        story.append(Spacer(1, 20))
+        
+        # Trend Analysis Section
+        story.append(Paragraph("Trend Analysis", styles['Heading2']))
+        for asset, trend_data in report['analysis']['trends'].items():
+            if trend_data:
+                story.append(Paragraph(f"Asset: {asset}", styles['Heading3']))
+                data = [
+                    ["Metric", "Value"],
+                    ["Trend", trend_data.get('trend', 'N/A')],
+                    ["Volatility", f"{format_value(trend_data.get('volatility'))}%"],
+                    ["Momentum", f"{format_value(trend_data.get('momentum'))}%"]
+                ]
+                t = Table(data, colWidths=[2*inch, 1.5*inch])
+                t.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ]))
+                story.append(t)
+                story.append(Spacer(1, 12))
+        
+        # Market Insights Section
+        story.append(Paragraph("Market Insights", styles['Heading2']))
+        insights = report['analysis']['market_insights']
+        
+        if insights['summary']:
+            story.append(Paragraph("Key Observations:", styles['Heading3']))
+            for insight in insights['summary']:
+                story.append(Paragraph(f"• {insight}", styles['Normal']))
+            story.append(Spacer(1, 12))
+            
+        if insights['opportunities']:
+            story.append(Paragraph("Opportunities:", styles['Heading3']))
+            for opportunity in insights['opportunities']:
+                story.append(Paragraph(f"• {opportunity}", styles['Normal']))
+            story.append(Spacer(1, 12))
+            
+        if insights['risks']:
+            story.append(Paragraph("Risks:", styles['Heading3']))
+            for risk in insights['risks']:
+                story.append(Paragraph(f"• {risk}", styles['Normal']))
+        
+        # Build the PDF
+        doc.build(story)
+        print(f"PDF report saved to {filepath}")
+
 def format_value(value, format_str='.2f'):
     """Format a value with proper handling of N/A"""
     if value is None or value == 'N/A':
@@ -331,7 +463,7 @@ def main():
     parser.add_argument('--report-only', action='store_true',
                       help='Only generate report without fetching new data')
     parser.add_argument('--format', type=str, default='both',
-                      choices=['json', 'csv', 'both'],
+                      choices=['json', 'csv', 'pdf', 'all'],
                       help='Output format for the report')
     args = parser.parse_args()
     
@@ -350,10 +482,12 @@ def main():
     report = tracker.generate_consolidated_report(args.timeframe)
     
     # Save reports in specified format(s)
-    if args.format in ['json', 'both']:
+    if args.format in ['json', 'both', 'all']:
         tracker.save_report(report)
-    if args.format in ['csv', 'both']:
+    if args.format in ['csv', 'both', 'all']:
         tracker.save_report_as_csv(report)
+    if args.format in ['pdf', 'all']:
+        tracker.save_report_as_pdf(report)
     
     print("\nReport Summary:")
     print("=" * 50)

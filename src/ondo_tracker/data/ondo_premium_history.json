@@ -1478,5 +1478,190 @@
             }
         },
         "timestamp": "2025-04-10T17:39:42.250492"
+    },
+    {
+        "treasury_yields": {
+            "3M": 4.359,
+            "1Y": 2.963,
+            "30Y": 3.254,
+            "10Y-TIPS": 0.812
+        },
+        "dex_prices": {
+            "coingecko": 0.9985
+        },
+        "premium_metrics": {
+            "coingecko_price": 0.9985,
+            "usdy_yield": 5.25,
+            "implied_yield": 0.1502253380070151,
+            "yield_premium": -5.099774661992985,
+            "price_premium_pct": -0.14999999999999458
+        },
+        "trading_analysis": {
+            "volume_24h": {
+                "coingecko": 75000
+            },
+            "liquidity": {
+                "coingecko": 1500000
+            },
+            "price_volatility": {
+                "coingecko": 0.005
+            },
+            "price_trends": {
+                "coingecko": {
+                    "direction": "stable",
+                    "strength": "low",
+                    "24h_change": -0.001
+                }
+            }
+        },
+        "timestamp": "2025-04-10T18:32:08.337347"
+    },
+    {
+        "treasury_yields": {
+            "3M": 4.359,
+            "1Y": 2.963,
+            "30Y": 3.254,
+            "10Y-TIPS": 0.812
+        },
+        "dex_prices": {
+            "coingecko": 0.9985
+        },
+        "premium_metrics": {
+            "coingecko_price": 0.9985,
+            "usdy_yield": 5.25,
+            "implied_yield": 0.1502253380070151,
+            "yield_premium": -5.099774661992985,
+            "price_premium_pct": -0.14999999999999458
+        },
+        "trading_analysis": {
+            "volume_24h": {
+                "coingecko": 75000
+            },
+            "liquidity": {
+                "coingecko": 1500000
+            },
+            "price_volatility": {
+                "coingecko": 0.005
+            },
+            "price_trends": {
+                "coingecko": {
+                    "direction": "stable",
+                    "strength": "low",
+                    "24h_change": -0.001
+                }
+            }
+        },
+        "timestamp": "2025-04-10T18:40:20.317289"
+    },
+    {
+        "treasury_yields": {
+            "3M": 4.359,
+            "1Y": 2.963,
+            "30Y": 3.254,
+            "10Y-TIPS": 0.812
+        },
+        "dex_prices": {
+            "coingecko": 0.9985
+        },
+        "premium_metrics": {
+            "coingecko_price": 0.9985,
+            "usdy_yield": 5.25,
+            "implied_yield": 0.1502253380070151,
+            "yield_premium": -5.099774661992985,
+            "price_premium_pct": -0.14999999999999458
+        },
+        "trading_analysis": {
+            "volume_24h": {
+                "coingecko": 75000
+            },
+            "liquidity": {
+                "coingecko": 1500000
+            },
+            "price_volatility": {
+                "coingecko": 0.005
+            },
+            "price_trends": {
+                "coingecko": {
+                    "direction": "stable",
+                    "strength": "low",
+                    "24h_change": -0.001
+                }
+            }
+        },
+        "timestamp": "2025-04-10T18:42:32.183560"
+    },
+    {
+        "treasury_yields": {
+            "3M": 4.359,
+            "1Y": 2.963,
+            "30Y": 3.254,
+            "10Y-TIPS": 0.812
+        },
+        "dex_prices": {
+            "coingecko": 0.9985
+        },
+        "premium_metrics": {
+            "coingecko_price": 0.9985,
+            "usdy_yield": 5.25,
+            "implied_yield": 0.1502253380070151,
+            "yield_premium": -5.099774661992985,
+            "price_premium_pct": -0.14999999999999458
+        },
+        "trading_analysis": {
+            "volume_24h": {
+                "coingecko": 75000
+            },
+            "liquidity": {
+                "coingecko": 1500000
+            },
+            "price_volatility": {
+                "coingecko": 0.005
+            },
+            "price_trends": {
+                "coingecko": {
+                    "direction": "stable",
+                    "strength": "low",
+                    "24h_change": -0.001
+                }
+            }
+        },
+        "timestamp": "2025-04-10T18:43:39.946459"
+    },
+    {
+        "treasury_yields": {
+            "3M": 4.359,
+            "1Y": 2.963,
+            "30Y": 3.254,
+            "10Y-TIPS": 0.812
+        },
+        "dex_prices": {
+            "coingecko": 0.9985
+        },
+        "premium_metrics": {
+            "coingecko_price": 0.9985,
+            "usdy_yield": 5.25,
+            "implied_yield": 0.1502253380070151,
+            "yield_premium": -5.099774661992985,
+            "price_premium_pct": -0.14999999999999458
+        },
+        "trading_analysis": {
+            "volume_24h": {
+                "coingecko": 75000
+            },
+            "liquidity": {
+                "coingecko": 1500000
+            },
+            "price_volatility": {
+                "coingecko": 0.005
+            },
+            "price_trends": {
+                "coingecko": {
+                    "direction": "stable",
+                    "strength": "low",
+                    "24h_change": -0.001
+                }
+            }
+        },
+        "timestamp": "2025-04-10T18:44:17.851179"
     }
 ]
