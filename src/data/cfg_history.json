@@ -1,0 +1,23 @@
+{
+  "pool_id": "0x4ca805ce8ece2e63ffc1f9f8f2731d3f48df89df",
+  "pool_name": "Harbor Trade 2",
+  "currency": "DAI",
+  "latest_update": {
+    "timestamp": "2024-03-21",
+    "tranches": {
+      "junior": {
+        "token_price": 0.2058,
+        "nav": 1.0,
+        "discount_premium_percentage": -79.42,
+        "token_type": "TIN"
+      },
+      "senior": {
+        "token_price": 1.3391,
+        "nav": 1.0,
+        "discount_premium_percentage": 33.91,
+        "token_type": "DROP"
+      }
+    }
+  },
+  "historical_data": []
+} 

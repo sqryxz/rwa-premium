@@ -1,0 +1,92 @@
+{
+  "timestamp": "2025-04-10T09:39:42.252794+00:00",
+  "timeframe": "daily",
+  "cfg_report": {
+    "DROP": {
+      "current_premium": 33.91,
+      "avg_premium": 33.91,
+      "max_premium": 33.91,
+      "min_premium": 33.91,
+      "std_dev": NaN,
+      "num_observations": 1,
+      "premium_history": [
+        33.91
+      ]
+    },
+    "TIN": {
+      "current_premium": -79.42,
+      "avg_premium": -79.42,
+      "max_premium": -79.42,
+      "min_premium": -79.42,
+      "std_dev": NaN,
+      "num_observations": 1,
+      "premium_history": [
+        -79.42
+      ]
+    }
+  },
+  "ondo_report": {
+    "timeframe": "daily",
+    "data_points": 42,
+    "premium_stats": {
+      "mean": 2.028571428571433,
+      "std": 2.5824724128373986,
+      "min": -0.14999999999999458,
+      "max": 5.500000000000016
+    },
+    "yield_comparison": {
+      "mean_spread": -5.845669962319005,
+      "current_spread": -4.899774661992985
+    },
+    "trading_stats": {
+      "avg_daily_volume": 123214.28571428571,
+      "avg_liquidity": 1916666.6666666667
+    }
+  },
+  "analysis": {
+    "trends": {
+      "DROP_drop": {
+        "trend": "insufficient_data",
+        "volatility": null,
+        "momentum": null
+      },
+      "DROP_tin": {
+        "trend": "insufficient_data",
+        "volatility": null,
+        "momentum": null
+      },
+      "TIN_drop": {
+        "trend": "insufficient_data",
+        "volatility": null,
+        "momentum": null
+      },
+      "TIN_tin": {
+        "trend": "insufficient_data",
+        "volatility": null,
+        "momentum": null
+      },
+      "ondo": {
+        "trend": "insufficient_data",
+        "volatility": null,
+        "momentum": null
+      }
+    },
+    "correlations": {},
+    "market_insights": {
+      "summary": [],
+      "opportunities": [],
+      "risks": []
+    },
+    "risk_metrics": {
+      "volatility_ranking": [],
+      "trend_stability": {
+        "DROP_drop": "low",
+        "DROP_tin": "low",
+        "TIN_drop": "low",
+        "TIN_tin": "low",
+        "ondo": "low"
+      },
+      "correlation_risk": "low"
+    }
+  }
+}
